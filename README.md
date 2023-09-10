@@ -1,6 +1,6 @@
-# COMPE 272 Sec 48 - Enterprise Software Solutions Platform
+# CMPE 272 Sec 48 - Enterprise Software Solutions Platform
 ## Homework \#1 - Ansible
-#### By: Harshil Vyas
+#### By: Harshil Vyas (Group Leader)
 ---
 
 ## Homework Question:

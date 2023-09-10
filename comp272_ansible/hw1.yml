@@ -1,0 +1,81 @@
+---
+# Harshil Vyas
+# CMPE 272 - Sec 48
+- name: Deploy Web Server
+  hosts: target_webservers
+  become: yes
+  tags: ['deploy']
+  vars:
+    http_port: 8080
+  tasks:
+    - name: Install Apache Web Server
+      apt:
+        name: apache2
+        state: latest
+        update_cache: yes
+      tags: ['deploy']
+
+    - name: Start Apache service
+      service:
+        name: apache2
+        state: started
+      tags: ['deploy']
+
+    - name: Configure Web Server Content For HTML File
+      copy:
+        content: "Hello World from {{ inventory_hostname }}"
+        dest: /var/www/html/index.html
+      notify:
+        - Restart Apache
+      tags: ['deploy']
+
+    - name: Change Apache Port From 80 to {{ http_port }}
+      lineinfile:
+        dest: /etc/apache2/ports.conf
+        regexp: "^Listen 80$"
+        line: "Listen {{ http_port }}"
+        state: present
+      tags: ['deploy']
+      notify:
+        - Restart Apache
+
+    - name: Change Apache Virtual Host Port From 80 to {{ http_port }}
+      lineinfile:
+        dest: /etc/apache2/sites-available/000-default.conf
+        regexp: "^<VirtualHost \\*:80>$"
+        line: "<VirtualHost *:{{ http_port }}>"
+        state: present
+      tags: ['deploy']
+      notify:
+        - Restart Apache
+
+  handlers:
+    - name: Restart Apache
+      service:
+        name: apache2
+        state: restarted
+
+# Play No.2 -- Undeploy & Uninstall Apache Web Server 
+- name: Undeploy & Uninstall Apache Web Server
+  hosts: target_webservers
+  become: yes
+  tags: ['undeploy']
+  tasks:
+    - name: Stop Apache Web Server
+      apt:
+        name: apache2
+        state: absent
+        update_cache: yes
+      tags: ['undeploy']
+
+    - name: Clean Up Apache Web Server Packages
+      apt:
+        autoremove: yes
+        purge: yes
+      tags: ['undeploy']
+
+    - name: Remove HTML File
+      ansible.builtin.file:
+        path: /var/www/html/index.html
+        state: absent
+      tags: ['undeploy']
